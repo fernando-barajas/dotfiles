@@ -1,0 +1,29 @@
+#!/bin/bash
+# Move to the project directory if does not exist move to working dir
+# Attach or create tmux session named the same as current directory
+# Base on Chris Toomey Script
+
+WORK_DIR="$HOME/Documents/projects"
+
+session_exists() {
+  tmux list-session | sed -E 's/:.*$//' | grep -q "^$session_name$"
+}
+
+not_in_tmux() {
+  [[ -z "$TMUX" ]]
+}
+
+project_dir="$WORK_DIR/$1"
+
+if cd $project_dir || cd "$HOME/Documents/projects"; then
+  session_name="$(basename "$PWD" | tr . -)"
+
+  if not_in_tmux; then
+    tmux new-session -As "$session_name"
+  else
+    if ! session_exists; then
+      (TMUX=' ' tmux new-session -Ad -s "$session_name")
+    fi
+    tmux switch-client -t "$session_name"
+  fi
+fi
